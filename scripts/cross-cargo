@@ -33,6 +33,18 @@ case "$target" in
         export AR_aarch64_unknown_linux_gnu="$project_dir/scripts/zig-ar"
         export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER="$project_dir/scripts/zig-linux-aarch64"
         ;;
+    x86_64-unknown-linux-musl)
+        export CC_x86_64_unknown_linux_musl="$project_dir/scripts/zig-linux-x86_64-musl"
+        export AR_x86_64_unknown_linux_musl="$project_dir/scripts/zig-ar"
+        ;;
+    aarch64-unknown-linux-musl)
+        export CC_aarch64_unknown_linux_musl="$project_dir/scripts/zig-linux-aarch64-musl"
+        export AR_aarch64_unknown_linux_musl="$project_dir/scripts/zig-ar"
+        export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$project_dir/scripts/rust-lld-gnu"
+        if [[ -n "${FUANSYNC_RUNNER:-}" ]]; then
+            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_RUNNER="$project_dir/scripts/cross-runner"
+        fi
+        ;;
     *) echo "Unsupported cross target: $target" >&2; exit 2 ;;
 esac
 command=("$@")

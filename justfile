@@ -14,13 +14,21 @@ build:
 
 # Install standard libraries used by the Linux-hosted cross build.
 cross-setup:
-    rustup target add aarch64-unknown-linux-gnu x86_64-pc-windows-gnullvm x86_64-apple-darwin
+    rustup target add aarch64-unknown-linux-gnu x86_64-pc-windows-gnullvm x86_64-apple-darwin x86_64-unknown-linux-musl aarch64-unknown-linux-musl
 
 cross-build-linux:
     cargo build --release --locked --target x86_64-unknown-linux-gnu
 
 cross-build-aarch64:
     ./scripts/cross-cargo aarch64-unknown-linux-gnu build --release --locked
+
+cross-build-linux-musl:
+    ./scripts/cross-cargo x86_64-unknown-linux-musl build --release --locked
+
+cross-build-aarch64-musl:
+    ./scripts/cross-cargo aarch64-unknown-linux-musl build --release --locked
+
+cross-build-musl: cross-build-linux-musl cross-build-aarch64-musl
 
 cross-build-windows:
     ./scripts/cross-cargo x86_64-pc-windows-gnullvm build --release --locked
@@ -39,8 +47,17 @@ cross-test-windows *args="--all-targets":
 cross-test-macos *args="--all-targets":
     ./scripts/cross-cargo x86_64-apple-darwin test --release --locked {{args}}
 
+cross-test-linux-musl *args="--all-targets":
+    ./scripts/cross-cargo x86_64-unknown-linux-musl test --release --locked {{args}}
+
+cross-test-aarch64-musl *args="--lib":
+    ./scripts/cross-cargo aarch64-unknown-linux-musl test --release --locked {{args}}
+
 cross-run-windows *args="--version":
     ./scripts/cross-cargo x86_64-pc-windows-gnullvm run --release --locked -- {{args}}
 
 cross-run-macos *args="--version":
     ./scripts/cross-cargo x86_64-apple-darwin run --release --locked -- {{args}}
+
+cross-run-aarch64-musl *args="--version":
+    ./scripts/cross-cargo aarch64-unknown-linux-musl run --release --locked -- {{args}}

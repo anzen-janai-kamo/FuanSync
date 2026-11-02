@@ -59,10 +59,26 @@ just build
 just test
 ```
 
-交叉编译（支持 Linux x86_64/aarch64、Windows x86_64、macOS x86_64）需安装 Zig，macOS 目标还需配置 `SDKROOT` 或 `FUANSYNC_MACOS_LIBDIR`：
+交叉编译（支持 Linux x86_64/aarch64 的 glibc 与 musl、Windows x86_64、macOS x86_64）需安装 Zig，macOS 目标还需配置 `SDKROOT` 或 `FUANSYNC_MACOS_LIBDIR`：
 
 ```bash
 just cross-build
+```
+
+静态 musl 构建：
+
+```bash
+just cross-build-musl
+```
+
+产物位于 `target/x86_64-unknown-linux-musl/release/fuansync` 和
+`target/aarch64-unknown-linux-musl/release/fuansync`，不依赖 glibc。CA 根证书已内置，DNS 仍读取 `/etc/resolv.conf`。
+
+测试：
+
+```bash
+just cross-test-linux-musl
+FUANSYNC_RUNNER=qemu-aarch64-static just cross-test-aarch64-musl --lib
 ```
 
 ## License

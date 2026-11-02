@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+args=()
+skip_next=0
+for arg in "$@"; do
+    if [[ "$skip_next" == 1 ]]; then skip_next=0; continue; fi
+    case "$arg" in
+        --target=*) continue ;;
+        -target) skip_next=1; continue ;;
+        *) args+=("$arg") ;;
+    esac
+done
+exec "${ZIG:-zig}" cc -target aarch64-linux-musl "${args[@]}"

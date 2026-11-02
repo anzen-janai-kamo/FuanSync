@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+args=()
+for arg in "$@"; do
+    case "$arg" in
+        -Wl,*)
+            IFS=',' read -r -a parts <<< "${arg#-Wl,}"
+            args+=("${parts[@]}")
+            ;;
+        -nostartfiles|-nodefaultlibs)
+            ;;
+        -m64)
+            args+=("-m" "elf_x86_64")
+            ;;
+        -m32)
+            args+=("-m" "elf_i386")
+            ;;
+        *)
+            args+=("$arg")
+            ;;
+    esac
+done
+sysroot="$(rustc --print sysroot)"
+host="$(rustc -vV | sed -n 's/^host: //p')"
+exec "$sysroot/lib/rustlib/$host/bin/rust-lld" -flavor gnu "${args[@]}"
