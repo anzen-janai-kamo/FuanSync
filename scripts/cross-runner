@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+program="${1:?runner requires a program}"
+shift
+case "$program" in
+    /*) absolute="$program" ;;
+    *) absolute="$PWD/$program" ;;
+esac
+exec "${FUANSYNC_RUNNER:?set FUANSYNC_RUNNER to the external cross-runtime}" "$absolute" "$@"

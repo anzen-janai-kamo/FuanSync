@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -eu
+args=()
+if [ -n "${FUANSYNC_MACOS_LIBDIR:-}" ]; then
+    args+=("-L" "$FUANSYNC_MACOS_LIBDIR")
+fi
+for arg in "$@"; do
+    if [ "${skip_next:-0}" = 1 ]; then skip_next=0; continue; fi
+    case "$arg" in
+        -arch) skip_next=1; continue ;;
+        -mmacosx-version-min=*) continue ;;
+        *) args+=("$arg") ;;
+    esac
+done
+exec "${ZIG:-zig}" cc -target x86_64-macos-none "${args[@]}"

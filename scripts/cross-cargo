@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+project_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+target="${1:?usage: cross-cargo TARGET CARGO_ARGS...}"
+shift
+cd "$project_dir"
+export PATH="$project_dir/scripts:$PATH"
+export ZIG_GLOBAL_CACHE_DIR="${ZIG_GLOBAL_CACHE_DIR:-$project_dir/target/zig-cache}"
+mkdir -p "$ZIG_GLOBAL_CACHE_DIR"
+
+case "$target" in
+    x86_64-pc-windows-gnullvm)
+        export CARGO_TARGET_X86_64_PC_WINDOWS_GNULLVM_LINKER="$project_dir/scripts/zig-windows-linker"
+        if [[ -n "${FUANSYNC_RUNNER:-}" ]]; then
+            export CARGO_TARGET_X86_64_PC_WINDOWS_GNULLVM_RUNNER="$project_dir/scripts/cross-runner"
+        fi
+        ;;
+    x86_64-apple-darwin)
+        export FUANSYNC_MACOS_LIBDIR="${FUANSYNC_MACOS_LIBDIR:-${SDKROOT:+$SDKROOT/usr/lib}}"
+        if [[ -z "$FUANSYNC_MACOS_LIBDIR" || ! -d "$FUANSYNC_MACOS_LIBDIR" ]]; then
+            echo 'Set SDKROOT or FUANSYNC_MACOS_LIBDIR to the target macOS SDK/system libraries.' >&2
+            exit 2
+        fi
+        export CC_x86_64_apple_darwin="$project_dir/scripts/zig-macos-cc"
+        export AR_x86_64_apple_darwin="$project_dir/scripts/zig-ar"
+        export CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER="$project_dir/scripts/zig-macos-linker"
+        if [[ -n "${FUANSYNC_RUNNER:-}" ]]; then
+            export CARGO_TARGET_X86_64_APPLE_DARWIN_RUNNER="$project_dir/scripts/cross-runner"
+        fi
+        ;;
+    aarch64-unknown-linux-gnu)
+        export CC_aarch64_unknown_linux_gnu="$project_dir/scripts/zig-linux-aarch64"
+        export AR_aarch64_unknown_linux_gnu="$project_dir/scripts/zig-ar"
+        export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER="$project_dir/scripts/zig-linux-aarch64"
+        ;;
+    *) echo "Unsupported cross target: $target" >&2; exit 2 ;;
+esac
+command=("$@")
+exec cargo "${command[0]}" --target "$target" "${command[@]:1}"
